@@ -222,3 +222,159 @@ RUN pip install -r requirements.txt
 
 # Define o comando para rodar a aplicação
 CMD ["python", "app.py"]
+```
+
+## Docker Swarm é uma ferramenta de orquestração de contêineres que permite gerenciar um cluster de nós Docker como um único sistema virtual. Ele facilita a implementação e o gerenciamento de aplicações em contêineres em larga escala.
+
+### Comandos Docker Swarm
+
+- **`Inicializar um Swarm:`**
+  docker swarm init
+
+- **`Adicionar um nó ao Swarm:`**
+  docker swarm join --token <token> <IP_DO_MANAGER>:<PORTA>
+
+- **`Listar serviços:`**
+  docker service ls
+
+- **`Criar um serviço:`**
+  docker service create --name <NOME_SERVIÇO> --replicas <NÚMERO_DE_REPLICAS> <IMAGEM>
+
+```
+  docker service create \
+    --name giropops \
+    --replicas 3 \
+    -p 8080:80 \
+    --mount type=volume,src=giropops,dst=/usr/share/nginx/html/ \
+    --hostname host_um \
+    --limit-cpu 0.25 \
+    --limit-memory 64M \
+    --env variavel=value \
+    --dns 8.8.8.8 \
+    nginx
+  ```
+
+- **`Listar os serviços:`**
+  docker service ls
+
+- **`Exibir informações detalhadas sobre o serviço:`**
+  docker service ps <NOME_SERVIÇO>
+
+- **`Inspecionar um serviço:`**
+  docker service inspect <NOME_SERVIÇO>
+
+- **`Atualizar um serviço:`**
+  docker service update --image <NOVA_IMAGEM> <NOME_SERVIÇO>
+
+- **`Escalar um serviço:`**
+  docker service scale <service_name>=<replica_count>
+
+- **`Remover um serviço:`**
+  docker service rm <NOME_SERVIÇO>
+
+- **`Listar tarefas de um serviço:`**
+  docker service ps <NOME_SERVIÇO>
+
+- **`Visualizar logs de um serviço:`**
+  docker service logs <NOME_SERVIÇO>
+
+- **`Deixar o modo Swarm:`**
+  docker swarm leave --force
+
+### Comandos Docker Node
+
+- **`Listar nós do Swarm:`**
+  docker node ls
+
+- **`Promover um nó a manager:`**
+  docker node promote <NOME_DO_NO>
+
+- **`Rebaixar um nó de manager para worker:`**
+  docker node demote <NOME_DO_NO>
+
+- **`Remover um nó do Swarm:`**
+  docker node rm <NOME_DO_NO>
+
+- **`Inspecionar um nó:`**
+  docker node inspect <NOME_DO_NO>
+
+- **`Atualizar um nó:`**
+  docker node update <opções> <NOME_DO_NO>
+
+  ### 1. `--availability`
+  - Modifica a disponibilidade do nó. Pode ser definido como:
+    - `active`: O nó pode executar tarefas.
+    - `pause`: O nó não pode receber novas tarefas, mas as tarefas existentes continuam a rodar.
+    - `drain`: O nó não pode executar novas tarefas e as tarefas existentes são realocadas para outros nós.
+
+    **Exemplo**: 
+    docker node update --availability drain <node>
+
+  ### 2. `--label-add`
+  - Adiciona uma nova etiqueta ao nó.
+
+    **Exemplo**: 
+    docker node update --label-add env=production <node>
+
+  ### 3. `--label-rm`
+  - Remove uma etiqueta existente do nó.
+
+    **Exemplo**: 
+    docker node update --label-rm env <node>
+
+  ### 4. `--help`
+  - Exibe a ajuda para o comando `docker node update`, mostrando as opções disponíveis.
+
+    **Exemplo**: 
+    docker node update --help
+
+  ### 5. `--role`
+  - Modifica a função do nó, que pode ser `manager` ou `worker`. Para alterar a função de um nó para `manager`, você deve ter permissões de administrador.
+
+    **Exemplo**: 
+    docker node update --role manager <node>
+
+# Docker Network
+
+## Descrição
+
+O Docker Network é um componente fundamental do Docker que permite a comunicação entre contêineres, seja no mesmo host ou entre diferentes hosts em um cluster. Ele oferece várias opções para criar e gerenciar redes, possibilitando que contêineres se conectem uns aos outros de maneira segura e eficiente.
+
+### Tipos de Redes
+
+1. **Bridge Network**:
+   - A rede padrão criada pelo Docker.
+   - Permite que contêineres em um mesmo host se comuniquem entre si.
+   - Ideal para aplicações que precisam de isolamento de rede.
+
+2. **Host Network**:
+   - O contêiner compartilha a rede do host, sem isolamento.
+   - Usado quando é necessário um desempenho máximo e acesso direto à rede do host.
+
+3. **Overlay Network**:
+   - Permite a comunicação entre contêineres que estão em diferentes hosts, frequentemente utilizada em ambientes de cluster com Docker Swarm.
+   - Proporciona isolamento e segurança.
+
+4. **Macvlan Network**:
+   - Permite que contêineres se comportem como dispositivos físicos na rede.
+   - Usado quando é necessário um endereço MAC exclusivo para cada contêiner.
+
+### Comandos Comuns
+
+- Criar uma Rede:
+  docker network create <network_name>
+
+- Listar Redes:
+  docker network ls
+
+- Inspecionar uma Rede:
+  docker network inspect <network_name>
+
+- Conectar um Contêiner a uma Rede:
+  docker network connect <network_name> <container_name>
+
+- Desconectar um Contêiner de uma Rede:
+  docker network disconnect <network_name> <container_name>
+
+- Remover uma Rede:
+  docker network rm <network_name>
