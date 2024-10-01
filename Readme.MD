@@ -378,3 +378,49 @@ O Docker Network é um componente fundamental do Docker que permite a comunicaç
 
 - Remover uma Rede:
   docker network rm <network_name>
+
+# Docker Secrets
+
+## Descrição
+
+Docker Secrets é um recurso do Docker Swarm que permite armazenar e gerenciar informações sensíveis, como senhas, chaves de API e certificados, de maneira segura. Os segredos são criptografados e somente contêineres que têm permissão podem acessá-los. Isso ajuda a proteger dados sensíveis durante a execução de aplicações em contêineres.
+
+### Criar um Segredo
+
+Para criar um segredo, use o seguinte comando:
+
+docker secret create <secret_name> <secret_file>
+
+Exemplo:
+docker secret create my_secret ./my_secret.txt
+
+### Listar Segredos
+
+Para listar todos os segredos disponíveis no Swarm:
+
+docker secret ls
+
+### Inspecionar um Segredo
+
+Para obter detalhes sobre um segredo específico:
+
+docker secret inspect <secret_name>
+
+### Remover um Segredo
+
+Para remover um segredo:
+
+docker secret rm <secret_name>
+
+### Usar Segredos em um Serviço
+
+Ao criar um serviço, você pode usar segredos da seguinte forma:
+
+docker service create \
+  --name my_service \
+  --secret my_secret \
+  nginx
+
+Os segredos são disponibilizados em contêineres como arquivos no diretório `/run/secrets/`. Por exemplo, o segredo `my_secret` estará acessível em:
+
+/run/secrets/my_secret
