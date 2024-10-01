@@ -4,7 +4,8 @@ FROM debian
 # RUN executa um ou mais comandos no shell dentro da imagem. 
 # Aqui, estamos atualizando a lista de pacotes disponíveis, 
 # instalando o servidor Apache e, em seguida, limpando o cache do apt para reduzir o tamanho da imagem.
-RUN apt-get update && apt-get install -y apache2 && apt-get clean
+RUN apt-get update && apt-get install -y apache2 && apt-get install curl && apt-get clean
+
 # RUN altera a propriedade do diretório /var/lock para o usuário e grupo www-data.
 # Isso é necessário para que o Apache tenha permissão para criar e gerenciar
 # arquivos de bloqueio e PID adequadamente.
@@ -21,6 +22,13 @@ ENV APACHE_PID_FILE="/var/run/apache2.pid"
 ENV APACHE_RUN_USER="www-data"           
 ENV APACHE_RUN_GROUP="www-data"          
 ENV APACHE_LOG_DIR="/var/log/apache2"    
+
+# HEALTHCHECK define como o Docker irá verificar a saúde do contêiner.
+# Neste caso, o Docker fará uma verificação a cada 1 minuto e permitirá que o comando
+# de verificação leve até 30 segundos para ser executado. O comando usa 'curl' para tentar
+# acessar a página inicial do servidor Apache em execução no contêiner. Se a verificação falhar,
+# o contêiner será considerado não saudável.
+HEALTHCHECK --interval=1m --timeout=30s CMD curl -f http://localhost/ || exit 1
 
 # COPY copia arquivos do sistema de arquivos do host para o sistema de arquivos do container.
 # Aqui, estamos copiando o arquivo index.html para o diretório padrão do Apache,

@@ -1,144 +1,3 @@
-# Cheatsheet Docker
-
-## 1. Informações e Configurações
-
-- `docker --version`
-  - Exibe a versão do Docker instalada.
-
-- `docker info`
-  - Fornece informações detalhadas sobre a instalação do Docker, incluindo configurações do sistema, versão do servidor e informações sobre contêineres e imagens.
-
-- `docker version`
-  - Exibe as versões do Docker Client e do Docker Server.
-
-## 2. Imagens
-
-- `docker image pull [imagem]`
-  - Baixa uma imagem do Docker Hub ou de um registro especificado.
-
-- `docker image build -t [nome-imagem]:[tag] [diretório]`
-  - Constrói uma nova imagem a partir de um Dockerfile no diretório especificado. A tag é opcional e ajuda na versão da imagem.
-
-- `docker images` ou `docker image ls`
-  - Lista todas as imagens locais, incluindo informações sobre tags, IDs e tamanhos.
-
-- `docker rmi [imagem]`
-  - Remove uma ou mais imagens. Use `-f` para forçar a remoção de imagens que estão sendo utilizadas por contêineres.
-
-- `docker image tag [imagem]:[tag] [novo-nome]:[nova-tag]`
-  - Marca uma imagem existente com um novo nome e/ou tag.
-
-## 3. Contêineres
-
-- `docker container run [opções] [imagem] [comando]`
-  - Cria e inicia um contêiner a partir de uma imagem. Exemplos de opções:
-    - `-d`: executa o contêiner em modo destacado.
-    - `-ti`: o -it no Docker combina as opções -i (interativa) e -t (pseudo-terminal), permitindo que você execute um contêiner de forma interativa, com acesso ao terminal e entrada padrão.
-    - `-p [porta_host]:[porta_container]`: mapeia portas.
-    - `--name [nome]`: dá um nome ao contêiner.
-
-- `docker container ls`
-  - Lista contêineres em execução.
-
-- `docker container ls -a`
-  - Lista todos os contêineres, incluindo os parados.
-
-- `docker container stop [contêiner]`
-  - Para um contêiner em execução.
-
-- `docker container start [contêiner]`
-  - Inicia um contêiner parado.
-
-- `docker container attach [contêiner]`
-  - Conecta com um contêiner em execução.
-
-- `docker container restart [contêiner]`
-  - Reinicia um contêiner.
-
-- `docker container rm [contêiner]`
-  - Remove um ou mais contêineres. Use `-f` para forçar a remoção de contêineres em execução.
-
-- `docker container exec -it [contêiner] [comando]`
-  - Executa um comando em um contêiner em execução. O `-it` permite interação no terminal.
-
-- `docker container logs -f [contêiner]`
-  - Exibe os logs de um contêiner.
-
-- `docker container stats [contêiner]`
-  - Mostra o status do contêiner.
-
-- `docker container top [contêiner]`
-  - Exibe os processos que estão executando dentro do contêiner.
-  - `--format` para formatar o output "table {{.PID}}\t{{.USER}}\t{{.COMMAND}}"
-
-- `docker container update [opções] [contêiner]`
-  - Usado para atualizar as configurações de um contêiner em execução.
-  - `--cpu-shares:` Define a prioridade da CPU (valor numérico).
-  - `--memory:` Define a quantidade máxima de memória (por exemplo, 512m para 512 megabytes).
-  - `--restart:` Altera a política de reinício do contêiner.
-  - `--cpus:` Limita o número de CPUs disponíveis para o contêiner.
-
-- `docker container prune`
-  - Remove todos os contêineres parados no docker.
-
-## 4. Volumes
-
-- `docker container run -ti --mount type=tipo,src=origem,dst=destino [imagem]`
-  - `--mount`: Usado para especificar o tipo de montagem.
-  - `type`: Pode ser bind, volume ou tmpfs.
-  - `src/source`: O caminho da origem. Para bind, é o caminho no host. Para volume, é o nome do volume.
-  - `dst/destination`: O caminho onde a origem será montada dentro do contêiner.
-  - `ro`: Opção de Read Only
-
-- `docker volume create [nome-volume]`
-  - Cria um novo volume para persistência de dados.
-
-- `docker volume ls`
-  - Lista todos os volumes disponíveis.
-
-- `docker volume rm [volume]`
-  - Remove um ou mais volumes.
-
-- `docker inspect [volume]`
-  - Exibe detalhes sobre um volume, incluindo informações de configuração e uso.
-
-- `docker volume prune`
-  - Remove todos os volumes que não estiverem sendo utilizados por algum contêiner.
-
-## 5. Redes
-
-- `docker network create [nome-rede]`
-  - Cria uma nova rede para contêineres.
-
-- `docker network ls`
-  - Lista todas as redes disponíveis.
-
-- `docker network rm [rede]`
-  - Remove uma rede, se não houver contêineres conectados.
-
-- `docker network inspect [rede]`
-  - Exibe detalhes sobre uma rede, incluindo contêineres conectados.
-
-## 6. Docker Compose
-
-- `docker-compose up`
-  - Inicia e executa os serviços definidos no `docker-compose.yml`. Use `-d` para executar em modo destacado.
-
-- `docker-compose down`
-  - Para e remove os contêineres e redes criados pelo `docker-compose up`.
-
-- `docker-compose build`
-  - Constrói as imagens definidas no `docker-compose.yml`.
-
-- `docker-compose logs`
-  - Exibe logs dos serviços em execução.
-
-- `docker-compose ps`
-  - Lista os contêineres gerenciados pelo Docker Compose.
-
-- `docker-compose exec [serviço] [comando]`
-  - Executa um comando em um serviço em execução.
-
 ## 7. Dockerfile
 
 ### O que é um Dockerfile?
@@ -180,6 +39,18 @@ Um **Dockerfile** é um arquivo de texto que contém uma série de instruções 
 - **`ENTRYPOINT [comando]`**
   - **Descrição**: Define o comando que será executado quando o contêiner iniciar. Diferente de `CMD`, não pode ser substituído facilmente.
   - **Exemplo**: `ENTRYPOINT ["python3"]`
+
+- **`ARG [variável]`**
+  - **Descrição**: Define variáveis que podem ser passadas durante a construção da imagem. As variáveis definidas com `ARG` são acessíveis apenas durante o processo de construção e não estão disponíveis em tempo de execução no contêiner.
+  - **Exemplo**: 
+    ```dockerfile
+    ARG MY_VAR=default_value
+    RUN echo "O valor de MY_VAR é: $MY_VAR"
+    ```
+  - **Como usar**: Você pode passar um valor para a variável ao construir a imagem usando `--build-arg`:
+    ```bash
+    docker build --build-arg MY_VAR=HelloWorld -t my_image .
+    ```
 
 - **`ENV [variável]=[valor]`**
   - **Descrição**: Define variáveis de ambiente que estarão disponíveis para os processos executados dentro do contêiner.
