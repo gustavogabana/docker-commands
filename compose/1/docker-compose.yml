@@ -1,0 +1,20 @@
+version: "3.7"  # Define a versão do Docker Compose a ser utilizada
+
+services:  # Início da definição dos serviços
+  web:  # Nome do serviço
+    image: nginx  # A imagem do contêiner que será utilizada (Nginx neste caso)
+    deploy:  # Configurações específicas para o ambiente de produção (Docker Swarm)
+      replicas: 5  # Número de réplicas (instâncias) do serviço que devem ser executadas
+      resources:  # Limites de recursos para o contêiner
+        limits:  # Define os limites máximos
+          cpus: "0.1"  # Limite de CPU (10% de um núcleo)
+          memory: 50M  # Limite de memória (50 megabytes)
+      restart_policy:  # Política de reinício para o contêiner
+        condition: on-failure  # O contêiner será reiniciado apenas se falhar
+    ports:  # Mapeamento de portas do host para o contêiner
+      - "8080:80"  # Mapeia a porta 8080 do host para a porta 80 do contêiner
+    networks:  # Redes às quais o serviço será conectado
+      - webserver  # Nome da rede a ser utilizada
+
+networks:  # Início da definição das redes
+  webserver:  # Nome da rede

@@ -1,0 +1,102 @@
+version: "3.7"  # Define a versão do formato do arquivo Compose
+
+services:  # Início da definição de serviços
+  redis:  # Nome do serviço Redis
+    image: redis:alpine  # Usa a imagem do Redis baseada na versão Alpine
+    ports:  # Mapeamento de portas
+      - "6379"  # Expõe a porta 6379 do Redis (padrão) para o host
+    networks:  # Redes a que o serviço pertence
+      - frontend  # Conecta o serviço à rede chamada 'frontend'
+    deploy:  # Configurações específicas para a implantação do serviço
+      replicas: 2  # Inicia 2 instâncias (réplicas) do Redis
+      update_config:  # Configurações para atualizações de serviço
+        parallelism: 1  # Permite atualizar 1 réplica por vez
+        delay: 10s  # Delay de 10 segundos entre atualizações
+        order: start-first  # Inicia novas instâncias antes de parar as antigas
+      rollback_config:  # Configurações para reverter atualizações
+        parallelism: 1  # Permite reverter 1 réplica por vez
+        delay: 10s  # Delay de 10 segundos entre as reversões
+        failure_action: continue  # Continua mesmo que a reversão falhe
+        monitor: 60s  # Monitora o serviço por 60 segundos após a atualização
+        order: stop-first  # Para as instâncias antes de iniciar as novas
+      restart_policy:  # Política de reinício do serviço
+        condition: on-failure  # Reinicia a réplica em caso de falha
+
+  db:  # Nome do serviço de banco de dados
+    image: postgres:9.4  # Usa a imagem do PostgreSQL na versão 9.4
+    volumes:  # Montagem de volumes
+      - db-data:/var/lib/postgresql/data  # Monta um volume persistente para dados do banco
+    networks:  # Redes a que o serviço pertence
+      - backend  # Conecta o serviço à rede chamada 'backend'
+    deploy:  # Configurações específicas para a implantação do serviço
+      placement:  # Restrições de colocação para o serviço
+        constraints: [node.role === manager]  # Executa apenas em nós de gerenciamento
+    environment:  # Variáveis de ambiente para o serviço
+      - POSTGRES_USER='postgres'  # Define o usuário do PostgreSQL
+      - POSTGRES_PASSWORD='postgres'  # Define a senha do usuário do PostgreSQL
+
+  vote:  # Nome do serviço de votação
+    image: dockersamples/examplevotingapp_vote:before  # Usa a imagem do aplicativo de votação
+    ports:  # Mapeamento de portas
+      - 5000:80  # Mapeia a porta 5000 do host para a porta 80 do container
+    networks:  # Redes a que o serviço pertence
+      - frontend  # Conecta o serviço à rede chamada 'frontend'
+    depends_on:  # Define dependências de inicialização
+      - redis  # O serviço 'vote' depende do serviço 'redis' para ser iniciado
+    deploy:  # Configurações específicas para a implantação do serviço
+      replicas: 2  # Inicia 2 instâncias (réplicas) do serviço de votação
+      update_config:  # Configurações para atualizações de serviço
+        parallelism: 2  # Permite atualizar 2 réplicas ao mesmo tempo
+      restart_policy:  # Política de reinício do serviço
+        condition: on-failure  # Reinicia a réplica em caso de falha
+
+  result:  # Nome do serviço de resultados
+    image: dockersamples/examplevotingapp_result:before  # Usa a imagem do aplicativo de resultados
+    ports:  # Mapeamento de portas
+      - 5001:80  # Mapeia a porta 5001 do host para a porta 80 do container
+    networks:  # Redes a que o serviço pertence
+      - backend  # Conecta o serviço à rede chamada 'backend'
+    depends_on:  # Define dependências de inicialização
+      - db  # O serviço 'result' depende do serviço 'db' para ser iniciado
+    deploy:  # Configurações específicas para a implantação do serviço
+      replicas: 1  # Inicia 1 instância (réplica) do serviço de resultados
+      update_config:  # Configurações para atualizações de serviço
+        parallelism: 1  # Permite atualizar 1 por vez
+        delay: 10s  # Delay de 10 segundos entre atualizações
+      restart_policy:  # Política de reinício do serviço
+        condition: on-failure  # Reinicia a réplica em caso de falha
+
+  worker:  # Nome do serviço de trabalho
+    image: dockersamples/examplevotingapp_worker  # Usa a imagem do trabalhador do aplicativo de votação
+    networks:  # Redes a que o serviço pertence
+      - frontend  # Conecta o serviço à rede chamada 'frontend'
+      - backend  # Conecta o serviço à rede chamada 'backend'
+    deploy:  # Configurações específicas para a implantação do serviço
+      mode: replicated  # O serviço será replicado
+      replicas: 1  # Inicia 1 instância (réplica) do trabalhador
+      labels: [APP=VOTING]  # Adiciona um rótulo ao serviço
+      restart_policy:  # Política de reinício do serviço
+        condition: on-failure  # Reinicia a réplica em caso de falha
+        delay: 10s  # Delay de 10 segundos antes de tentar reiniciar
+        max_attempts: 3  # Máximo de 3 tentativas de reinício
+        window: 120s  # Janela de 120 segundos para as tentativas
+      placement:  # Restrições de colocação para o serviço
+        constraints: [node.role === manager]  # Executa apenas em nós de gerenciamento
+
+  visualizer:  # Nome do serviço visualizador
+    image: dockersamples/visualizer:stable  # Usa a imagem do visualizador estável
+    ports:  # Mapeamento de portas
+      - "8080:8080"  # Mapeia a porta 8080 do host para a porta 8080 do container
+    stop_grace_period: 1m30s  # Tempo de espera para o encerramento do contêiner
+    volumes:  # Montagem de volumes
+      - "/var/run/docker.sock:/var/run/docker.sock"  # Permite acesso ao socket do Docker para monitoramento
+    deploy:  # Configurações específicas para a implantação do serviço
+      placement:  # Restrições de colocação para o serviço
+        constraints: [node.role === manager]  # Executa apenas em nós de gerenciamento
+
+networks:  # Início da definição de redes
+  frontend:  # Define uma rede chamada 'frontend'
+  backend:  # Define uma rede chamada 'backend'
+
+volumes:  # Início da definição de volumes
+  db-data:  # Define um volume chamado 'db-data' para persistência de dados do banco

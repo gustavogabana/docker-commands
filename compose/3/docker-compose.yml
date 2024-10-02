@@ -1,0 +1,34 @@
+version: '3.7'  # Define a versão do formato do arquivo Compose
+
+services:  # Início da definição de serviços
+  web:  # Nome do serviço web
+    image: nginx  # Usa a imagem oficial do NGINX
+    deploy:  # Configurações específicas para a implantação do serviço
+      placement:  # Restrições de colocação para a localização do serviço
+        constraints:  # Define as condições que os nós devem atender
+        - node.labels.dc == UK  # O serviço será implantado apenas em nós com o rótulo 'dc' igual a 'UK'
+      replicas: 5  # Inicia 5 instâncias (réplicas) do serviço
+      resources:  # Restrições de recursos para cada réplica
+        limits:  # Limites de uso de recursos
+          cpus: "0.1"  # Limita o uso a 0.1 CPU por réplica
+          memory: 50M  # Limita o uso de memória a 50 MB por réplica
+        restart-policy: on-failure  # Reinicia a réplica em caso de falha
+    ports:  # Mapeamento de portas
+      - "8080:80"  # Mapeia a porta 8080 do host para a porta 80 do container
+    networks:  # Redes a que o serviço pertence
+      - webserver  # Conecta o serviço à rede chamada 'webserver'
+    
+  visualizer:  # Nome do serviço visualizer
+    image: dockersamples/visualizer:stable  # Usa uma imagem de visualizador estável
+    ports:  # Mapeamento de portas
+      - "8080:8080"  # Mapeia a porta 8080 do host para a porta 8080 do container
+    volumes:  # Montagem de volumes
+      - "/var/run/docker.sock:/var/run/docker.sock"  # Permite acesso ao socket do Docker para monitoramento
+    deploy:  # Configurações específicas para a implantação do serviço
+      placement:  # Restrições de colocação para onde o serviço pode ser implantado
+        constraints: [node.role === manager]  # Executa apenas em nós de gerenciamento
+    networks:  # Redes a que o serviço pertence
+      - webserver  # Conecta o serviço à rede chamada 'webserver'
+
+networks:  # Início da definição de redes
+  webserver:  # Define uma rede chamada 'webserver'

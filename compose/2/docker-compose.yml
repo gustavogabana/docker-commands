@@ -1,0 +1,26 @@
+version: '3.7'  # Define a versão do Docker Compose a ser utilizada
+
+services:  # Início da definição dos serviços
+  db:  # Nome do serviço de banco de dados
+    image: mysql:5.7  # Imagem do contêiner do MySQL, versão 5.7
+    volumes:  # Montagem de volumes para persistência de dados
+      - db_data:/var/lib/mysql  # Monta o volume 'db_data' no caminho do MySQL onde os dados são armazenados
+    environment:  # Variáveis de ambiente para configuração do MySQL
+      - MYSQL_ROOT_PASSWORD=root  # Define a senha do usuário root
+      - MYSQL_DATABASE=wordpress  # Cria um banco de dados chamado 'wordpress'
+      - MYSQL_USER=root  # Cria um usuário chamado 'root'
+      - MYSQL_PASSWORD=root  # Define a senha para o usuário 'root'
+  
+  wordpress:  # Nome do serviço do WordPress
+    depends_on:  # Define dependência entre serviços
+      - db  # O serviço WordPress depende do serviço 'db' (MySQL) estar ativo
+    image: wordpress  # Imagem do contêiner do WordPress
+    ports:  # Mapeamento de portas
+      - "8080:80"  # Mapeia a porta 8080 do host para a porta 80 do contêiner do WordPress
+    environment:  # Variáveis de ambiente para configuração do WordPress
+      - WORDPRESS_DB_HOST=db:3306  # Define o host do banco de dados como 'db' na porta 3306
+      - WORDPRESS_DB_USER=wordpress  # Define o usuário do banco de dados para o WordPress
+      - WORDPRESS_DB_PASSWORD=wordpress  # Define a senha para o usuário do banco de dados do WordPress
+
+volumes:  # Início da definição de volumes
+  db_data:  # Nome do volume para persistência de dados do banco de dados
