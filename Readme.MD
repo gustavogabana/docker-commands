@@ -424,3 +424,135 @@ docker service create \
 Os segredos são disponibilizados em contêineres como arquivos no diretório `/run/secrets/`. Por exemplo, o segredo `my_secret` estará acessível em:
 
 /run/secrets/my_secret
+
+# Docker Compose
+
+## Descrição
+
+Docker Compose é uma ferramenta que permite definir e executar aplicações Docker compostas por múltiplos contêineres. Usando um arquivo de configuração (geralmente chamado `docker-compose.yml`), você pode descrever os serviços, redes e volumes necessários para sua aplicação de maneira simples e organizada.
+
+### Características Principais
+
+1. **Definição de Serviços**:
+   - Você pode definir múltiplos serviços em um único arquivo, especificando como cada contêiner deve ser configurado, suas imagens, volumes, variáveis de ambiente e dependências.
+
+2. **Facilidade de Uso**:
+   - Comandos simples como `docker-compose up` e `docker-compose down` permitem iniciar e parar todos os contêineres de uma aplicação com um único comando, facilitando o gerenciamento do ciclo de vida da aplicação.
+
+3. **Ambientes de Desenvolvimento**:
+   - Ideal para configurar ambientes de desenvolvimento locais, onde você pode orquestrar serviços como bancos de dados, servidores web e aplicações de backend de forma coesa e eficiente.
+
+4. **Escalabilidade**:
+   - Você pode escalar serviços facilmente, aumentando o número de instâncias de um contêiner com um simples comando, o que é útil para testar a performance e a resiliência da aplicação.
+
+5. **Rede de Serviços**:
+   - O Docker Compose cria uma rede interna onde os serviços podem se comunicar entre si, permitindo que você defina quais serviços podem interagir.
+
+6. **Volume de Dados**:
+   - Você pode definir volumes persistentes para armazenar dados de forma segura, garantindo que os dados não sejam perdidos quando os contêineres são parados ou removidos.
+
+### Estrutura do Arquivo docker-compose.yml
+
+Um exemplo básico de um arquivo `docker-compose.yml`:
+```yaml
+version: '3.8'
+
+services:
+  web:
+    image: nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./html:/usr/share/nginx/html
+    networks:
+      - frontend
+
+  db:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - backend
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  db_data:
+```
+### Comandos Comuns
+
+- Subir os Serviços:
+  docker-compose up
+
+- Subir os Serviços em Modo Destacado (detached):
+  docker-compose up -d
+
+- Parar os Serviços:
+  docker-compose down
+
+- Verificar o Status dos Serviços:
+  docker-compose ps
+
+- Escalar um Serviço:
+  docker-compose up --scale web=3
+
+- Visualizar os Logs dos Serviços:
+  docker-compose logs
+
+- Executar um Comando em um Contêiner:
+  docker-compose exec web bash
+
+### Exemplos de Uso
+
+1. **Aplicação Web Simples**:
+   - Você pode criar uma aplicação web com Nginx servindo arquivos estáticos e um banco de dados MySQL.
+
+2. **Ambiente de Desenvolvimento**:
+   - Utilize o Docker Compose para criar um ambiente de desenvolvimento local que simule seu ambiente de produção, facilitando testes.
+
+3. **Integração Contínua**:
+   - Combine o Docker Compose com ferramentas de CI/CD para criar pipelines de integração contínua, onde cada build pode ser feito em um ambiente isolado e consistente.
+
+# Docker Stack
+
+## Descrição
+
+Docker Stack é uma funcionalidade do Docker que permite implantar e gerenciar aplicações multi-contêiner em ambientes de produção, especialmente no contexto do Docker Swarm. Ele permite a definição de uma aplicação composta por múltiplos serviços, redes e volumes, utilizando um único arquivo de configuração chamado `docker-compose.yml`.
+
+### Características Principais
+
+1. **Implantação de Aplicações Complexas**:
+   - Permite a orquestração de aplicações que consistem em vários serviços interdependentes.
+
+2. **Gerenciamento Simplificado**:
+   - Facilita o gerenciamento do ciclo de vida das aplicações, incluindo a escalabilidade e a atualização dos serviços.
+
+3. **Configuração de Rede**:
+   - Configura redes automaticamente, permitindo que os serviços se comuniquem entre si de forma eficiente.
+
+4. **Persistência de Dados**:
+   - Suporte para volumes persistentes que garantem que os dados não sejam perdidos mesmo quando os contêineres são removidos.
+
+5. **Configurações de Segurança**:
+   - Permite a integração com Docker Secrets para gerenciar informações sensíveis de forma segura.
+
+### Comandos Comuns
+
+- **Implantar um Stack**:
+  docker stack deploy -c docker-compose.yml <stack_name>
+
+- **Listar Stacks**:
+  docker stack ls
+
+- **Ver Serviços de um Stack**:
+  docker stack services <stack_name>
+
+- **Remover um Stack**:
+  docker stack rm <stack_name>
+
+- **Ver Logs de um Serviço**:
+  docker service logs <service_name>
