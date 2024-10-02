@@ -1,0 +1,73 @@
+version: '3.7'  # Define a versão do formato do arquivo Compose
+
+services:  # Início da definição de serviços
+  prometheus:  # Nome do serviço Prometheus
+    image: linuxtips/prometheus_alpine  # Usa a imagem do Prometheus baseada no Alpine
+    volumes:  # Montagens de volume
+      - ./config/prometheus/:/etc/prometheus/  # Monta a configuração do Prometheus
+      - prometheus_data:/var/lib/prometheus  # Monta um volume persistente para dados do Prometheus
+    networks:  # Redes a que o serviço pertence
+      - backend  # Conecta o serviço à rede chamada 'backend'
+    ports:  # Mapeamento de portas
+      - 9090:9090  # Mapeia a porta 9090 do host para a porta 9090 do container
+  
+  node-exporter:  # Nome do serviço Node Exporter
+    image: linuxtips/node-exporter_alpine  # Usa a imagem do Node Exporter baseada no Alpine
+    hostname: '{{.Node.ID}}'  # Define o hostname como o ID do nó
+    volumes:  # Montagens de volume
+      - /proc:/usr/proc  # Monta o diretório /proc para coletar métricas do sistema
+      - /sys:/usr/sys  # Monta o diretório /sys para coletar métricas do sistema
+      - /:/rootfs  # Monta a raiz do sistema de arquivos para coletar métricas
+    deploy:  # Configurações específicas para a implantação do serviço
+      mode: global  # Implanta o serviço em todos os nós do cluster
+    networks:  # Redes a que o serviço pertence
+      - backend  # Conecta o serviço à rede chamada 'backend'
+    ports:  # Mapeamento de portas
+      - 9100:9100  # Mapeia a porta 9100 do host para a porta 9100 do container
+    
+  alertmanager:  # Nome do serviço Alertmanager
+    image: linuxtips/alertmanager_alpine  # Usa a imagem do Alertmanager baseada no Alpine
+    volumes:  # Montagens de volume
+      - ./conf/alertmanager/:/etc/alertmanager/  # Monta a configuração do Alertmanager
+    networks:  # Redes a que o serviço pertence
+      - backend  # Conecta o serviço à rede chamada 'backend'
+    ports:  # Mapeamento de portas
+      - 9093:9093  # Mapeia a porta 9093 do host para a porta 9093 do container
+    
+  cadvisor:  # Nome do serviço cAdvisor
+    image: google/cadvisor  # Usa a imagem do cAdvisor
+    hostname: '{{.Node.ID}}'  # Define o hostname como o ID do nó
+    volumes:  # Montagens de volume
+      - /:/rootfs:ro  # Monta a raiz do sistema de arquivos em modo somente leitura
+      - /var/run:/var/run:rw  # Monta o diretório /var/run em modo leitura e escrita
+      - /sys:/sys:ro  # Monta o diretório /sys em modo somente leitura
+      - /var/lib/docker/:/var/lib/docker:ro  # Monta os dados do Docker em modo somente leitura
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # Permite acesso ao socket do Docker em modo somente leitura
+    networks:  # Redes a que o serviço pertence
+      - backend  # Conecta o serviço à rede chamada 'backend'
+    deploy:  # Configurações específicas para a implantação do serviço
+      mode: global  # Implanta o serviço em todos os nós do cluster
+    ports:  # Mapeamento de portas
+      - 8080:8080  # Mapeia a porta 8080 do host para a porta 8080 do container
+    
+  grafana:  # Nome do serviço Grafana
+    image: nopp/grafana_alpine  # Usa a imagem do Grafana baseada no Alpine
+    depends_on:  # Define dependências de inicialização
+      - prometheus  # O serviço 'grafana' depende do serviço 'prometheus'
+    volumes:  # Montagens de volume
+      - ./config/grafana/grafana.db:/grafana/data/grafana.db  # Monta o banco de dados do Grafana
+    env_file:  # Arquivo com variáveis de ambiente
+      - grafana.config  # Especifica o arquivo de configuração do Grafana
+    networks:  # Redes a que o serviço pertence
+      - backend  # Conecta o serviço à rede chamada 'backend'
+      - frontend  # Conecta o serviço à rede chamada 'frontend'
+    ports:  # Mapeamento de portas
+      - 3000:3000  # Mapeia a porta 3000 do host para a porta 3000 do container
+
+networks:  # Início da definição de redes
+  frontend:  # Define uma rede chamada 'frontend'
+  backend:  # Define uma rede chamada 'backend'
+
+volumes:  # Início da definição de volumes
+  prometheus_data:  # Define um volume chamado 'prometheus_data' para persistência do Prometheus
+  grafana_data:  # Define um volume chamado 'grafana_data' para persistência do Grafana
